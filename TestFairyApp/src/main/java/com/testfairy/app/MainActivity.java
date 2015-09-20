@@ -23,6 +23,8 @@ import android.widget.LinearLayout;
 import android.content.Context;
 import android.widget.Toast;
 import android.webkit.JavascriptInterface;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 
 import java.io.File;
 import java.util.Map;
@@ -156,6 +158,16 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+
+		AccountManager manager = AccountManager.get(this);
+
+		Account[] accounts = manager.getAccountsByType("com.testfairy.app");
+		for (Account account: accounts) {
+			System.out.println("XXXX " + account.name + " " + account.type);
+		}
+
+		Account account = new Account("myusername", "com.testfairy.app");
+		manager.addAccountExplicitly(account, "", null);
 
 //		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 //		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
