@@ -4,7 +4,7 @@ Testers app lets testers file bug reports and download apps that are using the [
 
 ## Status
 
-[![Build Status](https://magnum.travis-ci.com/testfairy/testers-app-android.svg?token=pZPW9yu4daFqJ7fYn9hn)](https://magnum.travis-ci.com/testfairy/testers-app-android)
+[![Build Status](https://travis-ci.org/testfairy/testers-app-android.svg)](https://travis-ci.org/testfairy/testers-app-android)
 
 ## Installation
 
