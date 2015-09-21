@@ -20,4 +20,5 @@ deploy:
   file: TestFairyApp/build/outputs/apk/TestFairyApp-release.apk
   skip_cleanup: true
   on:
-    repo: testfairy/testers-app-android
+    tags: true
+    
