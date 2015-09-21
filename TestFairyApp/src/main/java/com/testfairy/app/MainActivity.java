@@ -29,6 +29,28 @@ import android.accounts.AccountManager;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.util.EntityUtils;
+
+import org.apache.http.*;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.*;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.protocol.*;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+
 public class MainActivity extends Activity {
 
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
@@ -44,6 +66,48 @@ public class MainActivity extends Activity {
 	private ProgressBar progressBar;
 
 	private boolean isLoginPage = false;
+	private long backPressedTime = 0;
+
+	private class FetchLoggedInEmail extends Thread {
+
+		private String url;
+
+		public FetchLoggedInEmail(String url) {
+			super();
+			this.url = url;
+		}
+			
+		@Override
+		public void run() {
+			try {
+				String cookies = CookieManager.getInstance().getCookie(url);
+
+				CookieUtils utils = new CookieUtils();
+				CookieStore cookieStore = new BasicCookieStore();
+				Map<String, String> map = utils.parseCookieString(cookies);
+				for (String key: map.keySet()) {
+					BasicClientCookie cookie = new BasicClientCookie(key, map.get(key));
+					cookie.setDomain(".testfairy.com");
+					cookieStore.addCookie(cookie);
+				}
+
+				System.out.println("ZZZ " + cookies);
+				HttpClient client = new DefaultHttpClient();
+				HttpContext context = new BasicHttpContext();
+				context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+				HttpGet get = new HttpGet("http://app3.testfairy.com/login/me/");
+				HttpResponse response = client.execute(get, context);
+				HttpEntity entity = response.getEntity();
+				String result = EntityUtils.toString(entity);
+				JSONObject json = new JSONObject(result);
+				String email = json.getString("email");
+
+				System.out.println("ZZ2 " + email);
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	private class MyWebViewClient extends WebViewClient {
 		@Override
@@ -73,26 +137,16 @@ public class MainActivity extends Activity {
 					Log.d("console", "clearHistory");
 					view.clearHistory();
 				}
+
 				isLoginPage = false;
 			}
-			//webView.loadUrl("javascript:window.TFAPP.foo(document.getElementsByTagName('html')[0].innerHTML);");
 
-			/*
-			String cookies = CookieManager.getInstance().getCookie(url);
-			if (cookies != null) {
-				CookieUtils utils = new CookieUtils();
-				Map<String, String> map = utils.parseCookieString(cookies);
-//				Log.v(Config.TAG, "COOKIE: " + map.get("u") + ", url=" + url);
-
-				if (map.containsKey("u") && !url.startsWith("https://app.testfairy.com")) {
-					CookieManager.getInstance().setCookie("https://app.testfairy.com/login/", map.get("u"));
-				}
-			}
-			*/
+			// check cookies, see if a user has changed
+			Thread t = new FetchLoggedInUser(url);
+			t.start();
 		}
 	}
 
-	long backPressedTime = 0;
 	public class WebAppInterface {
 
 		Activity activity;
@@ -133,15 +187,10 @@ public class MainActivity extends Activity {
 			}
 		} else {
 			webView.loadUrl("javascript:MyController.onAndroidBackPressed()");
-
 		}
-
-
 	}
 
 	private class MyWebChromeClient extends WebChromeClient {
-
-
 		public void onProgressChanged(WebView view, int progress) {
 			setPageProgress(progress);
 		}
