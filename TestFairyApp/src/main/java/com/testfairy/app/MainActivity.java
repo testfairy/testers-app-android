@@ -88,7 +88,7 @@ public class MainActivity extends Activity {
 				HttpClient client = new DefaultHttpClient();
 				HttpContext context = new BasicHttpContext();
 				utils.setCookies(context, cookies);
-				HttpGet get = new HttpGet("http://app3.testfairy.com/login/me/");
+				HttpGet get = new HttpGet("http://app.testfairy.com/login/me/");
 				HttpResponse response = client.execute(get, context);
 				HttpEntity entity = response.getEntity();
 				String result = EntityUtils.toString(entity);
