@@ -59,6 +59,8 @@ public class MainActivity extends Activity {
 	private static final String LOGIN_URL = "https://app.testfairy.com/login/";
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
+	private static final String ACCOUNT_TYPE = "com.testfairy.app";
+
 	private File localFile;
 	private WebView webView;
 	private ProgressDialog dialog;
@@ -68,12 +70,11 @@ public class MainActivity extends Activity {
 	private boolean isLoginPage = false;
 	private long backPressedTime = 0;
 
-	private class FetchLoggedInEmail extends Thread {
+	private class UpdateTestFairyAccount implements Runnable {
 
 		private String url;
 
-		public FetchLoggedInEmail(String url) {
-			super();
+		public UpdateTestFairyAccount(String url) {
 			this.url = url;
 		}
 			
@@ -83,18 +84,10 @@ public class MainActivity extends Activity {
 				String cookies = CookieManager.getInstance().getCookie(url);
 
 				CookieUtils utils = new CookieUtils();
-				CookieStore cookieStore = new BasicCookieStore();
-				Map<String, String> map = utils.parseCookieString(cookies);
-				for (String key: map.keySet()) {
-					BasicClientCookie cookie = new BasicClientCookie(key, map.get(key));
-					cookie.setDomain(".testfairy.com");
-					cookieStore.addCookie(cookie);
-				}
 
-				System.out.println("ZZZ " + cookies);
 				HttpClient client = new DefaultHttpClient();
 				HttpContext context = new BasicHttpContext();
-				context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+				utils.setCookies(context, cookies);
 				HttpGet get = new HttpGet("http://app3.testfairy.com/login/me/");
 				HttpResponse response = client.execute(get, context);
 				HttpEntity entity = response.getEntity();
@@ -102,9 +95,24 @@ public class MainActivity extends Activity {
 				JSONObject json = new JSONObject(result);
 				String email = json.getString("email");
 
-				System.out.println("ZZ2 " + email);
+				AccountManager manager = AccountManager.get(MainActivity.this);
+				Account[] accounts = manager.getAccounts();
+				boolean found = false;
+				for (Account account: accounts) {
+					if (account.name == email && account.type == ACCOUNT_TYPE) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					Log.d(Config.TAG, "Adding email " + email + " to TestFairy account manager");
+					Account account = new Account(email, ACCOUNT_TYPE);
+					manager.addAccountExplicitly(account, "", null);
+				}
+
 			} catch (Throwable e) {
-				e.printStackTrace();
+				// not logged in probably, or network error
 			}
 		}
 	}
@@ -142,7 +150,7 @@ public class MainActivity extends Activity {
 			}
 
 			// check cookies, see if a user has changed
-			Thread t = new FetchLoggedInUser(url);
+			Thread t = new Thread(new UpdateTestFairyAccount(url));
 			t.start();
 		}
 	}
@@ -207,16 +215,6 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-
-		AccountManager manager = AccountManager.get(this);
-
-		Account[] accounts = manager.getAccountsByType("com.testfairy.app");
-		for (Account account: accounts) {
-			System.out.println("XXXX " + account.name + " " + account.type);
-		}
-
-		Account account = new Account("myusername", "com.testfairy.app");
-		manager.addAccountExplicitly(account, "", null);
 
 //		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 //		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
