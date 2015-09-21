@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/testfairy/testers-app-android.svg)](https://travis-ci.org/testfairy/testers-app-android)
-
 # TestFairy's - Testers App
 
 Testers app lets testers file bug reports and download apps that are using the [TestFairy](https://www.testfairy.com) platform.
