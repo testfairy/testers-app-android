@@ -15,12 +15,16 @@ To install dev, clone this project from github and create an .APK by running:
 
 ## Changelog
 
+### Version 1.7 
+* Added: Updated app icon.
+* Added: Creating a TestFairy account on device, so when using an app powered by TestFairy's SDK, it will pick up on the account used to log in into the testers' app.
+
 ### Version 1.6
-* Added: support back for closing on screen dialogs.
-* Added: moved project to github.
+* Added: Support back for closing on screen dialogs.
+* Added: Moved project to GitHub.
 
 ### Version 1.5
-* Bugfix: progress bar randomly crashed below API version 11.
+* Bugfix: Progress bar randomly crashed below API version 11.
 
 ## Support
 
