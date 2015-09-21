@@ -23,9 +23,33 @@ import android.widget.LinearLayout;
 import android.content.Context;
 import android.widget.Toast;
 import android.webkit.JavascriptInterface;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 
 import java.io.File;
 import java.util.Map;
+
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.util.EntityUtils;
+
+import org.apache.http.*;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.*;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.protocol.*;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
 
 public class MainActivity extends Activity {
 
@@ -35,6 +59,8 @@ public class MainActivity extends Activity {
 	private static final String LOGIN_URL = "https://app.testfairy.com/login/";
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
+	private static final String ACCOUNT_TYPE = "com.testfairy.app";
+
 	private File localFile;
 	private WebView webView;
 	private ProgressDialog dialog;
@@ -42,6 +68,54 @@ public class MainActivity extends Activity {
 	private ProgressBar progressBar;
 
 	private boolean isLoginPage = false;
+	private long backPressedTime = 0;
+
+	private class UpdateTestFairyAccount implements Runnable {
+
+		private String url;
+
+		public UpdateTestFairyAccount(String url) {
+			this.url = url;
+		}
+			
+		@Override
+		public void run() {
+			try {
+				String cookies = CookieManager.getInstance().getCookie(url);
+
+				CookieUtils utils = new CookieUtils();
+
+				HttpClient client = new DefaultHttpClient();
+				HttpContext context = new BasicHttpContext();
+				utils.setCookies(context, cookies);
+				HttpGet get = new HttpGet("http://app3.testfairy.com/login/me/");
+				HttpResponse response = client.execute(get, context);
+				HttpEntity entity = response.getEntity();
+				String result = EntityUtils.toString(entity);
+				JSONObject json = new JSONObject(result);
+				String email = json.getString("email");
+
+				AccountManager manager = AccountManager.get(MainActivity.this);
+				Account newAccount = new Account(email, ACCOUNT_TYPE);
+				Account[] accounts = manager.getAccounts();
+				boolean found = false;
+				for (Account account: accounts) {
+					if (account.equals(newAccount)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					Log.d(Config.TAG, "Adding email " + newAccount.name + " to TestFairy account manager");
+					manager.addAccountExplicitly(newAccount, "", null);
+				}
+
+			} catch (Throwable e) {
+				// not logged in probably, or network error
+			}
+		}
+	}
 
 	private class MyWebViewClient extends WebViewClient {
 		@Override
@@ -71,26 +145,16 @@ public class MainActivity extends Activity {
 					Log.d("console", "clearHistory");
 					view.clearHistory();
 				}
+
 				isLoginPage = false;
 			}
-			//webView.loadUrl("javascript:window.TFAPP.foo(document.getElementsByTagName('html')[0].innerHTML);");
 
-			/*
-			String cookies = CookieManager.getInstance().getCookie(url);
-			if (cookies != null) {
-				CookieUtils utils = new CookieUtils();
-				Map<String, String> map = utils.parseCookieString(cookies);
-//				Log.v(Config.TAG, "COOKIE: " + map.get("u") + ", url=" + url);
-
-				if (map.containsKey("u") && !url.startsWith("https://app.testfairy.com")) {
-					CookieManager.getInstance().setCookie("https://app.testfairy.com/login/", map.get("u"));
-				}
-			}
-			*/
+			// check cookies, see if a user has changed
+			Thread t = new Thread(new UpdateTestFairyAccount(url));
+			t.start();
 		}
 	}
 
-	long backPressedTime = 0;
 	public class WebAppInterface {
 
 		Activity activity;
@@ -131,15 +195,10 @@ public class MainActivity extends Activity {
 			}
 		} else {
 			webView.loadUrl("javascript:MyController.onAndroidBackPressed()");
-
 		}
-
-
 	}
 
 	private class MyWebChromeClient extends WebChromeClient {
-
-
 		public void onProgressChanged(WebView view, int progress) {
 			setPageProgress(progress);
 		}
