@@ -96,19 +96,19 @@ public class MainActivity extends Activity {
 				String email = json.getString("email");
 
 				AccountManager manager = AccountManager.get(MainActivity.this);
+				Account newAccount = new Account(email, ACCOUNT_TYPE);
 				Account[] accounts = manager.getAccounts();
 				boolean found = false;
 				for (Account account: accounts) {
-					if (account.name == email && account.type == ACCOUNT_TYPE) {
+					if (account.equals(newAccount)) {
 						found = true;
 						break;
 					}
 				}
 
 				if (!found) {
-					Log.d(Config.TAG, "Adding email " + email + " to TestFairy account manager");
-					Account account = new Account(email, ACCOUNT_TYPE);
-					manager.addAccountExplicitly(account, "", null);
+					Log.d(Config.TAG, "Adding email " + newAccount.name + " to TestFairy account manager");
+					manager.addAccountExplicitly(newAccount, "", null);
 				}
 
 			} catch (Throwable e) {
