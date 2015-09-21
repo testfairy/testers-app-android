@@ -1,6 +1,6 @@
 language: android
 jdk:
-- openjdk7
+  - openjdk7
 
 android:
   components:
@@ -8,18 +8,16 @@ android:
   - android-19
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_ab387d2e1d9a_key -iv $encrypted_ab387d2e1d9a_iv -in testfairy.keystore.enc -out testfairy.keystore -d
+  - openssl aes-256-cbc -K $encrypted_ab387d2e1d9a_key -iv $encrypted_ab387d2e1d9a_iv -in testfairy.keystore.enc -out testfairy.keystore -d
 
 script:
-- bash gradlew assembleRelease --info
+  - bash gradlew assembleRelease --info
 
 deploy:
   provider: releases
-  api-key:
-    secure: fS2m/Kza9Yg134TPG/bdSpRk8gKl1VnrK2zK7yRKg04mRwJpKXEoTPF0TUIiJW1STn27kcsUevKMPoPSDOsMmwPOL5n2XuYKuHOD4ic59DoYLz4JUTtQxU3UNmmkBhMrgDfQpf9h4fg6+XShi7DJJMnVgLD1tC0KwEvDR4+yf0k=
-  file:
-  - TestFairyApp/build/outputs/apk/TestFairyApp-release.apk
+  api_key:
+    secure: KVoRsyzmMV9p2k0yaZtkdCaP1zB6nB8lOJ03rGGvEX2QoDd3VlzpaQEYtsXz9fKGrGY9kicV6ZO4dGmP4joNukyLMEvuc2++X9K1GL1MhSyKUO1ITeLdU+3LZrBwRSUUMUwkw7sQ7WgcRTkBFeDlyGyLsMVaepPaKMrDIvYMVxs=
+  file: TestFairyApp/build/outputs/apk/TestFairyApp-release.apk
   skip_cleanup: true
   on:
-    tags: true
-    all_branches: true
+    repo: testfairy/testers-app-android
