@@ -12,6 +12,10 @@ To install dev, clone this project from github and create an .APK by running:
 
 ## Changelog
 
+### Version 1.8
+
+* No major changes, just compilation settings updated.
+
 ### Version 1.7 
 * Added: Updated app icon.
 * Added: Creating a TestFairy account on device, so when using an app powered by TestFairy's SDK, it will pick up on the account used to log in into the testers' app.
