@@ -379,17 +379,23 @@ public class MainActivity extends Activity {
 		}
 
 		@Override
-		public void onDownloadProgress(int offset, int total) {
-			dialog.setIndeterminate(false);
-			dialog.setMax(total >> 10);
-			dialog.setProgress(offset >> 10);
+		public void onDownloadProgress(final int offset, final int total) {
 
-			if ((offset - lastPrintout) >= THRESHOLD) {
-				lastPrintout = offset;
-				Log.d(Config.TAG, "Download progress: " + offset + " / " + total);
-			}
+			MainActivity.this.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					dialog.setIndeterminate(false);
+					dialog.setMax(total >> 10);
+					dialog.setProgress(offset >> 10);
 
-			this.fileSize = total;
+					if ((offset - lastPrintout) >= THRESHOLD) {
+						lastPrintout = offset;
+						Log.d(Config.TAG, "Download progress: " + offset + " / " + total);
+					}
+
+					fileSize = total;
+				}
+			});
 		}
 	};
 }
