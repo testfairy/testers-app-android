@@ -4,7 +4,10 @@ jdk:
 
 android:
   components:
-  - build-tools-25.0.0
+  - build-tools-25.0.2
+  - platform-tools
+  - extra-android-m2repository
+  - extra-google-android-support
   - android-19
 
 before_install:
