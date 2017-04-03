@@ -4,9 +4,12 @@ jdk:
 
 android:
   components:
+
+  - tools
   - build-tools-25.0.2
   - platform-tools
   - extra-android-m2repository
+  - extra-google-m2repository
   - extra-google-android-support
   - android-19
 
