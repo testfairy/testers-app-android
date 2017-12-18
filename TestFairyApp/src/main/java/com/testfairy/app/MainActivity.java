@@ -40,7 +40,7 @@ import java.util.Map;
 public class MainActivity extends Activity {
 
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
-	private static final String USER_AGENT = "TestersApp/" + Config.BUILD + " android mobile";
+	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android mobile";
 
 	private static final String LOGIN_URL = "https://app.testfairy.com/login/";
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
