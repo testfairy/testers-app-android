@@ -1,44 +1,46 @@
 package com.testfairy.app;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.webkit.*;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-import android.webkit.JavascriptInterface;
-import android.accounts.Account;
-import android.accounts.AccountManager;
+
+import com.testfairy.TestFairy;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Map;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-
-import org.apache.http.*;
-import org.apache.http.client.*;
-import org.apache.http.protocol.*;
-import org.json.JSONObject;
-
-import com.testfairy.TestFairy;
-
 public class MainActivity extends Activity {
 
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
-	private static final String USER_AGENT = "TestFairy App " + Config.BUILD + " android mobile";
+	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android mobile";
 
 	private static final String LOGIN_URL = "https://app.testfairy.com/login/";
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
@@ -72,7 +74,7 @@ public class MainActivity extends Activity {
 				HttpClient client = new DefaultHttpClient();
 				HttpContext context = new BasicHttpContext();
 				utils.setCookies(context, cookies);
-				HttpGet get = new HttpGet("http://app.testfairy.com/login/me/");
+				HttpGet get = new HttpGet("https://app.testfairy.com/login/me/");
 				HttpResponse response = client.execute(get, context);
 				HttpEntity entity = response.getEntity();
 				String result = EntityUtils.toString(entity);
@@ -223,7 +225,7 @@ public class MainActivity extends Activity {
 		webSettings.setSavePassword(false);
 
 
-//		webSettings.setUserAgentString(USER_AGENT);
+		webSettings.setUserAgentString(USER_AGENT);
 //		webView.addJavascriptInterface(new MyJSObject(), "TFAPP");
 
 //		SharedPreferences prefs = getPreferences(MODE_PRIVATE);
