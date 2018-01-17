@@ -1,12 +1,13 @@
 buildscript {
     repositories {
         mavenCentral()
+        google()
         maven { url 'https://www.testfairy.com/maven' }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.0'
-	    classpath 'com.testfairy.plugins.gradle:testfairy:1.+'
+        classpath 'com.android.tools.build:gradle:3.0.1'
+	    classpath 'com.testfairy.plugins.gradle:testfairy:2.0'
     }
 }
 
@@ -16,6 +17,7 @@ apply plugin: 'testfairy'
 repositories {
     jcenter()
     mavenCentral()
+    google()
 }
 
 dependencies {
@@ -23,12 +25,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 22
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
-        minSdkVersion 13
-        targetSdkVersion 17
+        minSdkVersion 14
+        targetSdkVersion 22
     }
 
     signingConfigs {
