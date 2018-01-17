@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
         google()
         maven { url 'https://www.testfairy.com/maven' }
     }

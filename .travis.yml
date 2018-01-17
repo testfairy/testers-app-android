@@ -21,6 +21,11 @@ before_install:
 script:
   - bash gradlew assembleRelease --info
 
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
 deploy:
   provider: releases
   api_key:
