@@ -1,17 +1,15 @@
 language: android
-jdk:
-  - oraclejdk8
-
 android:
   components:
-
-  - tools
-  - build-tools-25.0.2
-  - platform-tools
-  - extra-android-m2repository
-  - extra-google-m2repository
-  - extra-google-android-support
-  - android-19
+    - build-tools-26.0.2
+    - android-26
+    - sys-img-armeabi-v7a-android-tv-l
+    - add-on
+    - extra
+  licenses:
+    - 'android-sdk-preview-license-52d11cd2'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_ab387d2e1d9a_key -iv $encrypted_ab387d2e1d9a_iv -in testfairy.keystore.enc -out testfairy.keystore -d
