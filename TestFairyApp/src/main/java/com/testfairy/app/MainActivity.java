@@ -141,29 +141,37 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public class WebAppInterface {
+	public static class WebAppInterface {
+		MainActivity activity;
 
-		Activity activity;
-
-		public WebAppInterface(Activity activity) {
+		WebAppInterface(MainActivity activity) {
 			this.activity = activity;
 		}
 
 		@JavascriptInterface
 		public void doBackPressed() {
-			if (webView.canGoBack()) {
-				Log.d("console WebAppInterface", "canGoBack -> go back");
-				webView.goBack();
-			} else {
-				//exit the app
-				if (backPressedTime + 2000 > System.currentTimeMillis()) {
-					Log.d("console WebAppInterface", "exit the app -> exit");
-					activity.finish();
-				} else {
-					Log.d("console WebAppInterface", "exit the app -> start timer");
-					Toast.makeText(activity, "Press once again to exit!", Toast.LENGTH_SHORT).show();
-					backPressedTime = System.currentTimeMillis();
+			activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					activity.goBack();
 				}
+			});
+		}
+	}
+
+	private void goBack() {
+		if (webView.canGoBack()) {
+			Log.d("console WebAppInterface", "canGoBack -> go back");
+			webView.goBack();
+		} else {
+			//exit the app
+			if (backPressedTime + 2000 > System.currentTimeMillis()) {
+				Log.d("console WebAppInterface", "exit the app -> exit");
+				MainActivity.this.finish();
+			} else {
+				Log.d("console WebAppInterface", "exit the app -> start timer");
+				Toast.makeText(MainActivity.this, "Press once again to exit!", Toast.LENGTH_SHORT).show();
+				backPressedTime = System.currentTimeMillis();
 			}
 		}
 	}
