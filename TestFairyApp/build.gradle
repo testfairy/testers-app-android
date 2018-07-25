@@ -22,16 +22,18 @@ repositories {
 }
 
 dependencies {
-    compile 'testfairy:testfairy-android-sdk:1.+@aar'
+    implementation 'testfairy:testfairy-android-sdk:1.+@aar'
+    implementation 'com.android.support:leanback-v17:27.1.0'
 }
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 27
     buildToolsVersion "26.0.2"
+    useLibrary  'org.apache.http.legacy'
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 22
+        minSdkVersion 17
+        targetSdkVersion 27
     }
 
     signingConfigs {
@@ -53,9 +55,9 @@ android {
 
     testfairyConfig {
         apiKey "9dc08e8d93efd8622178f0c61faeaf112fbafcb4"
-	recordOnBackground false
-	autoUpdate true
-	maxDuration "unlimited"
+	    recordOnBackground false
+	    autoUpdate true
+	    maxDuration "unlimited"
         //uploadProguardMapping true
     }
 
