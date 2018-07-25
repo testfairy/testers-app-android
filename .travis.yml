@@ -9,6 +9,7 @@ android:
     - android-19
     - android-21
     - android-22
+    - android-27
     - extra-android-support
     - extra-android-m2repository
     - extra-google-m2repository
