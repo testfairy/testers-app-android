@@ -11,10 +11,12 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -367,7 +369,17 @@ public class MainActivity extends Activity {
 			Log.v(Config.TAG, String.format("Downloaded completed in %.2f seconds", secs));
 
 			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setDataAndType(Uri.fromFile(localFile), MIME_TYPE_APK);
+			Uri uri = Uri.fromFile(localFile);
+			if (Build.VERSION.SDK_INT >= 24) {
+				uri = FileProvider.getUriForFile(
+					MainActivity.this,
+					getApplicationContext().getPackageName() + ".provider",
+					localFile
+				);
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+
+			intent.setDataAndType(uri, MIME_TYPE_APK);
 			startActivity(intent);
 		}
 
