@@ -307,10 +307,7 @@ public class MainActivity extends Activity {
 		dialog.setOnCancelListener(onDialogCancelled);
 		dialog.setCancelable(true);
 		dialog.setCanceledOnTouchOutside(false);
-
-		if (Build.VERSION.SDK_INT >= 14) {
-			dialog.setProgressNumberFormat("%1d KB/%2d KB");
-		}
+		dialog.setProgressNumberFormat("%1d KB/%2d KB");
 
 		dialog.show();
 
