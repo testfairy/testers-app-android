@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	  package="com.testfairy.app"
-	  android:versionCode="24"
-	  android:versionName="2.3.2">
+	  android:versionCode="25"
+	  android:versionName="2.3.3">
 
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -12,7 +12,7 @@
 	<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
 	<uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
-	<uses-feature android:name="android.software.leanback" android:required="false"/>
+	<uses-feature android:name="android.software.leanback" android:required="true"/>
 	<uses-feature android:name="android.hardware.faketouch" android:required="false"/>
 	<uses-feature android:name="android.hardware.telephony" android:required="false"/>
 	<uses-feature android:name="android.hardware.camera" android:required="false"/>
