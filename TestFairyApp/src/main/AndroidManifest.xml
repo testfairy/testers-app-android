@@ -20,6 +20,7 @@
 	<uses-feature android:name="android.hardware.location.gps" android:required="false"/>
 	<uses-feature android:name="android.hardware.microphone" android:required="false"/>
 	<uses-feature android:name="android.hardware.sensor" android:required="false"/>
+	<uses-feature android:name="android.hardware.screen.portrait" android:required="false"/>
 
 	<uses-sdk
 		android:minSdkVersion="7"
