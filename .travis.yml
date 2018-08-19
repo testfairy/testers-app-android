@@ -20,7 +20,6 @@ before_install:
   - openssl aes-256-cbc -K $encrypted_ab387d2e1d9a_key -iv $encrypted_ab387d2e1d9a_iv -in testfairy.keystore.enc -out testfairy.keystore -d
 
 script:
-  - keytool -exportcert -keystore testfairy.keystore -list -v -alias testfairyapp -storepass 3u2u741H8ca34ap -keypass 3u2u741H8ca34ap
   - bash gradlew assembleRelease --info
 
 cache:
