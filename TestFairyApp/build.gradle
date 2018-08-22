@@ -24,6 +24,7 @@ repositories {
 dependencies {
     implementation 'testfairy:testfairy-android-sdk:1.+@aar'
     implementation 'com.android.support:leanback-v17:27.1.0'
+    implementation 'com.google.android.gms:play-services-auth:15.0.1'
 }
 
 android {
@@ -46,7 +47,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField "String", "GOOGLE_CLIENT_ID", '"178557428658-flq8bmmsph58uf7acr955ihg34r0p0p9.apps.googleusercontent.com"'
+        }
+
         release {
+            buildConfigField "String", "GOOGLE_CLIENT_ID", '"178557428658-2k14gt6c3487mgeagh7h9bn8kddnkq8j.apps.googleusercontent.com"'
+
             signingConfig signingConfigs.release
             //runProguard true
             //proguardFile getDefaultProguardFile('proguard-android.txt')
