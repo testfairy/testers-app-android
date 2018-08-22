@@ -11,10 +11,13 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -22,6 +25,12 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.testfairy.TestFairy;
 
 import org.apache.http.HttpEntity;
@@ -42,10 +51,17 @@ public class MainActivity extends Activity {
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
 	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android mobile";
 
-	private static final String LOGIN_URL = "https://app.testfairy.com/login/";
+	private static final String BASE_URL = "https://app.testfairy.com";
+	private static final String LOGIN_URL = BASE_URL + "/login/";
+	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/signin/google/";
+
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
 	private static final String ACCOUNT_TYPE = "com.testfairy.app";
+
+	private static final String GOOGLE_CLIENT_ID = BuildConfig.GOOGLE_CLIENT_ID;
+
+	private static final int RC_GET_TOKEN = 9002;
 
 	private File localFile;
 	private WebView webView;
@@ -55,6 +71,8 @@ public class MainActivity extends Activity {
 
 	private boolean isLoginPage = false;
 	private long backPressedTime = 0;
+
+	private GoogleSignInClient googleSignInClient;
 
 	private class UpdateTestFairyAccount implements Runnable {
 
@@ -106,6 +124,11 @@ public class MainActivity extends Activity {
 	private class MyWebViewClient extends WebViewClient {
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			if (url.contains("/signup/google/")) {
+				doGoogleLogin();
+				return true;
+			}
+
 			if (url.contains("/download/")) {
 				startDownload(url);
 			}
@@ -218,10 +241,10 @@ public class MainActivity extends Activity {
 
 		TestFairy.begin(this, "b5f48b5b410537bbb8781507af019e07307f2eac");
 
-		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+		progressBar = findViewById(R.id.progressBar);
 		progressBar.setVisibility(View.GONE);
 
-		webView = (WebView) findViewById(R.id.webView);
+		webView = findViewById(R.id.webView);
 		webView.setWebViewClient(new MyWebViewClient());
 		webView.setWebChromeClient(new MyWebChromeClient());
 
@@ -231,7 +254,6 @@ public class MainActivity extends Activity {
 		WebSettings webSettings = webView.getSettings();
 		webSettings.setJavaScriptEnabled(true);
 		webSettings.setSavePassword(false);
-
 
 		webSettings.setUserAgentString(USER_AGENT);
 //		webView.addJavascriptInterface(new MyJSObject(), "TFAPP");
@@ -247,6 +269,23 @@ public class MainActivity extends Activity {
 //		SharedPreferences.Editor editor = prefs.edit();
 
 		webView.loadUrl(LOGIN_URL);
+
+		GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+				.requestIdToken(GOOGLE_CLIENT_ID)
+				.requestEmail()
+				.build();
+
+		googleSignInClient = GoogleSignIn.getClient(this, gso);
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == RC_GET_TOKEN) {
+			Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+			handleSignInResult(task);
+		}
 	}
 
 	private DialogInterface.OnCancelListener onDialogCancelled = new DialogInterface.OnCancelListener() {
@@ -299,18 +338,13 @@ public class MainActivity extends Activity {
 		Log.v(Config.TAG, "Using " + localFile.getAbsolutePath() + " for storing apk locally");
 
 		dialog = new ProgressDialog(this);
-//		dialog.setMax(0);
-//		dialog.setTitle("Please Wait");
 		dialog.setMessage("Downloading..");
 		dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		dialog.setIndeterminate(true);
 		dialog.setOnCancelListener(onDialogCancelled);
 		dialog.setCancelable(true);
 		dialog.setCanceledOnTouchOutside(false);
-
-		if (Build.VERSION.SDK_INT >= 14) {
-			dialog.setProgressNumberFormat("%1d KB/%2d KB");
-		}
+		dialog.setProgressNumberFormat("%1d KB/%2d KB");
 
 		dialog.show();
 
@@ -332,6 +366,24 @@ public class MainActivity extends Activity {
 		}
 
 		downloader.start();
+	}
+
+	private void doGoogleLogin() {
+		Intent signInIntent = googleSignInClient.getSignInIntent();
+		startActivityForResult(signInIntent, RC_GET_TOKEN);
+		progressBar.setProgress(0);
+		progressBar.setVisibility(View.VISIBLE);
+	}
+
+	private void handleSignInResult(@NonNull Task<GoogleSignInAccount> completedTask) {
+		try {
+			GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+			String idToken = account.getIdToken();
+			String url = GOOGLE_SIGNIN_URL + "?idToken=" + idToken;
+			webView.loadUrl(url);
+		} catch (ApiException e) {
+			Log.w("MainActivity", "handleSignInResult:error", e);
+		}
 	}
 
 	private FileDownloader.DownloadListener downloadListener = new FileDownloader.DownloadListener() {
@@ -370,7 +422,17 @@ public class MainActivity extends Activity {
 			Log.v(Config.TAG, String.format("Downloaded completed in %.2f seconds", secs));
 
 			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setDataAndType(Uri.fromFile(localFile), MIME_TYPE_APK);
+			Uri uri = Uri.fromFile(localFile);
+			if (Build.VERSION.SDK_INT >= 24) {
+				uri = FileProvider.getUriForFile(
+					MainActivity.this,
+					getApplicationContext().getPackageName() + ".provider",
+					localFile
+				);
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+
+			intent.setDataAndType(uri, MIME_TYPE_APK);
 			startActivity(intent);
 		}
 
