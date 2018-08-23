@@ -132,6 +132,11 @@ public class MainActivity extends Activity {
 			if (url.contains("/download/")) {
 				startDownload(url);
 			}
+
+			if (url.contains("/logout/")) {
+				googleSignInClient.signOut();
+			}
+
 			return false;
 		}
 
