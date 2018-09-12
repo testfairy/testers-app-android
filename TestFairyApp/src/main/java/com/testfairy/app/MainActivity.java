@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
 
 	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
-	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/signin/google/";
+	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/login/with/google/";
 
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
