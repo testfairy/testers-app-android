@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
 	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
 	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/signin/google/";
+	private static final String ACCOUNT_URL = BASE_URL + "/login/me/";
 
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
@@ -92,7 +93,7 @@ public class MainActivity extends Activity {
 				HttpClient client = new DefaultHttpClient();
 				HttpContext context = new BasicHttpContext();
 				utils.setCookies(context, cookies);
-				HttpGet get = new HttpGet("https://app.testfairy.com/login/me/");
+				HttpGet get = new HttpGet(ACCOUNT_URL);
 				HttpResponse response = client.execute(get, context);
 				HttpEntity entity = response.getEntity();
 				String result = EntityUtils.toString(entity);
