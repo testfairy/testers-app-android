@@ -35,6 +35,8 @@ android {
     defaultConfig {
         minSdkVersion 17
         targetSdkVersion 27
+        versionCode 29
+        versionName "2.4.0"
     }
 
     signingConfigs {
@@ -57,6 +59,24 @@ android {
             signingConfig signingConfigs.release
             //runProguard true
             //proguardFile getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+
+    flavorDimensions "version"
+    productFlavors {
+        mobile {
+            dimension "version"
+            applicationId "com.testfairy.app"
+//            manifest.srcFile "mobile/AndroidManifest.xml"
+        }
+
+        tv {
+            dimension "version"
+            applicationId "com.testfairy.app"
+            applicationIdSuffix ".tv"
+            versionNameSuffix "-tv"
+            versionCode 10000  + android.defaultConfig.versionCode
+//            manifest.srcFile "tv/AndroidManifest.xml"
         }
     }
 
