@@ -32,8 +32,9 @@ deploy:
   provider: releases
   api_key:
     secure: jCCkmcWFuBV8+6BxO2Mhci03OpNB3h4EC16o9PoWCkL/cXnBOZPFQFuxC5ZFGmBlGhgMs3obh8YAPcwGSx90Ri6FN3dGEZgMPfAV07EFFeqJnY/2Rd5PjvO6QQxlvR5SlJ7igIRvE+6GCFUAIznd8rA8x0CiSQMhaI+zAt7w+t4=
-  file: TestFairyApp/build/outputs/apk/tv/release/TestFairyApp-tv-release.apk
-  file: TestFairyApp/build/outputs/apk/mobile/release/TestFairyApp-mobile-release.apk
+  file: 
+    - TestFairyApp/build/outputs/apk/tv/release/TestFairyApp-tv-release.apk
+    - TestFairyApp/build/outputs/apk/mobile/release/TestFairyApp-mobile-release.apk
   skip_cleanup: true
   on:
     tags: true
