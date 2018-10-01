@@ -21,6 +21,7 @@ before_install:
 
 script:
   - bash gradlew assembleRelease --info
+  - find . -iname *.apk
 
 cache:
   directories:
