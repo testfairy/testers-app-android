@@ -72,8 +72,6 @@ android {
         tv {
             dimension "version"
             applicationId "com.testfairy.app"
-            applicationIdSuffix ".tv"
-            versionNameSuffix "-tv"
             versionCode 20000  + android.defaultConfig.versionCode
         }
     }
