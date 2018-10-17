@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -47,7 +46,6 @@ import java.io.File;
 import java.util.Map;
 
 public class MainActivity extends Activity {
-
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
 	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android mobile";
 
@@ -69,8 +67,6 @@ public class MainActivity extends Activity {
 	private ProgressDialog dialog;
 	private FileDownloader downloader;
 	private ProgressBar progressBar;
-
-	private boolean isLoginPage = false;
 	private long backPressedTime = 0;
 
 	private GoogleSignInClient googleSignInClient;
@@ -123,6 +119,8 @@ public class MainActivity extends Activity {
 	}
 
 	private class MyWebViewClient extends WebViewClient {
+		private boolean wasLastPageLogin = false;
+
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
 			if (url.contains("/signup/google/")) {
@@ -152,21 +150,27 @@ public class MainActivity extends Activity {
 
 			setPageProgress(100);
 
-			if (url.contains("/login")) {
-				isLoginPage = true;
+			Log.d(Config.TAG, "onPageFinished: Current URL = " + webView.getUrl());
+			if (isAtUrlPathExactly(url, "/login/")) {
+				wasLastPageLogin = true;
+				clearHistory(view);
 			} else {
-				if (isLoginPage) {
+				if (wasLastPageLogin && isAtUrlPathExactly(url, "/my/")) {
 					//if the last page was login delete the browser history, so the cant go back to this page
-					Log.d("console", "clearHistory");
-					view.clearHistory();
+					clearHistory(view);
 				}
 
-				isLoginPage = false;
+				wasLastPageLogin = false;
 			}
 
 			// check cookies, see if a user has changed
 			Thread t = new Thread(new UpdateTestFairyAccount(url));
 			t.start();
+		}
+
+		private void clearHistory(WebView view) {
+			Log.d(Config.TAG, "clearingHistory");
+			view.clearHistory();
 		}
 	}
 
@@ -189,35 +193,34 @@ public class MainActivity extends Activity {
 	}
 
 	private void goBack() {
-		if (webView.canGoBack()) {
-			Log.d("console WebAppInterface", "canGoBack -> go back");
-			webView.goBack();
+		String url = webView.getUrl();
+		if (isAtUrlPathExactly(url, "/login/") || isAtUrlPathExactly(url, "/my/")) {
+			promptOrExit();
 		} else {
-			//exit the app
-			if (backPressedTime + 2000 > System.currentTimeMillis()) {
-				Log.d("console WebAppInterface", "exit the app -> exit");
-				MainActivity.this.finish();
-			} else {
-				Log.d("console WebAppInterface", "exit the app -> start timer");
-				Toast.makeText(MainActivity.this, "Press once again to exit!", Toast.LENGTH_SHORT).show();
-				backPressedTime = System.currentTimeMillis();
-			}
+			Log.d(Config.TAG, "canGoBack -> go back");
+			webView.goBack();
 		}
 	}
 
 	@Override
 	public void onBackPressed() {
-		if (isLoginPage) {
-			if (backPressedTime + 2000 > System.currentTimeMillis()) {
-				Log.d("onBackPressed LoginPage", "exit the app -> exit");
-				finish();
-			} else {
-				Log.d("onBackPressed LoginPage", "exit the app -> start timer");
-				Toast.makeText(this, "Press once again to exit!", Toast.LENGTH_SHORT).show();
-				backPressedTime = System.currentTimeMillis();
-			}
+		Log.d(Config.TAG, "onBackPressed: Current URL = " + webView.getUrl());
+		String url = webView.getUrl();
+		if (isAtUrlPathExactly(url, "/login/") || isAtUrlPathExactly(url, "/my/")) {
+			promptOrExit();
 		} else {
-			webView.loadUrl("javascript:MyController.onAndroidBackPressed()");
+			webView.loadUrl("javascript:if(window.MyController){MyController.onAndroidBackPressed();} else {Android.doBackPressed();}");
+		}
+	}
+
+	private void promptOrExit() {
+		if (backPressedTime + 2000 > System.currentTimeMillis()) {
+			Log.d(Config.TAG, "exit the app -> exit");
+			finish();
+		} else {
+			Log.d(Config.TAG, "exit the app -> start timer");
+			Toast.makeText(this, "Press once again to exit!", Toast.LENGTH_SHORT).show();
+			backPressedTime = System.currentTimeMillis();
 		}
 	}
 
@@ -227,7 +230,7 @@ public class MainActivity extends Activity {
 		}
 
 		public void onConsoleMessage(String message, int lineNumber, String sourceID) {
-			Log.d("console ", message + " -- From line " + lineNumber + " of " + sourceID);
+			Log.d(Config.TAG, "console: " + message + " -- From line " + lineNumber + " of " + sourceID);
 		}
 	}
 
@@ -381,6 +384,11 @@ public class MainActivity extends Activity {
 		progressBar.setVisibility(View.VISIBLE);
 	}
 
+	private static boolean isAtUrlPathExactly(String url, String path) {
+		Uri uri = Uri.parse(url);
+		return path.equals(uri.getPath());
+	}
+
 	private void handleSignInResult(@NonNull Task<GoogleSignInAccount> completedTask) {
 		try {
 			GoogleSignInAccount account = completedTask.getResult(ApiException.class);
@@ -388,7 +396,7 @@ public class MainActivity extends Activity {
 			String url = GOOGLE_SIGNIN_URL + "?idToken=" + idToken;
 			webView.loadUrl(url);
 		} catch (ApiException e) {
-			Log.w("MainActivity", "handleSignInResult:error", e);
+			Log.w(Config.TAG, "handleSignInResult:error", e);
 		}
 	}
 
