@@ -47,7 +47,7 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
-	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android mobile";
+	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android " + BuildConfig.FLAVOR;
 
 	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
