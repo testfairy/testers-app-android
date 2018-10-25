@@ -23,8 +23,9 @@ repositories {
 
 dependencies {
     implementation 'testfairy:testfairy-android-sdk:1.+@aar'
-    implementation 'com.android.support:leanback-v17:27.1.0'
-    implementation 'com.google.android.gms:play-services-auth:15.0.1'
+    implementation 'com.android.support:leanback-v17:26.1.0'
+    implementation 'com.google.android.gms:play-services-auth:+'
+    implementation 'com.google.android.gms:play-services-ads:15.0.0'
 }
 
 android {

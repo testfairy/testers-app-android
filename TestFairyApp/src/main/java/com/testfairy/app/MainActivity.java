@@ -1,7 +1,5 @@
 package com.testfairy.app;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -17,7 +15,6 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -25,25 +22,24 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.testfairy.TestFairy;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
-
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
 
 public class MainActivity extends Activity {
@@ -54,7 +50,7 @@ public class MainActivity extends Activity {
 	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
 	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/login/with/google/";
-	private static final String ACCOUNT_URL = BASE_URL + "/login/me/";
+	private static final String REGISTER_ADVERTISER_IDENTIFIERS_URL = BASE_URL + "/register-advertiser-identifiers/";
 
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
@@ -75,46 +71,71 @@ public class MainActivity extends Activity {
 
 	private GoogleSignInClient googleSignInClient;
 
-	private class UpdateTestFairyAccount implements Runnable {
+	private class UpdateAdvertiserIdentifiers implements Runnable {
 
 		private String url;
 
-		public UpdateTestFairyAccount(String url) {
+		public UpdateAdvertiserIdentifiers(String url) {
 			this.url = url;
+		}
+
+		private String getAdvertisingId() {
+			String advertisingId = null;
+
+			try {
+				AdvertisingIdClient.Info adInfo = AdvertisingIdClient.getAdvertisingIdInfo(MainActivity.this.getBaseContext());
+				advertisingId = adInfo.getId();
+			}
+			catch (IOException e) {}
+			catch (GooglePlayServicesNotAvailableException e1) {}
+			catch (GooglePlayServicesRepairableException e2) {}
+			return advertisingId;
 		}
 			
 		@Override
 		public void run() {
+
+			String advertisingId = getAdvertisingId();
+			if (advertisingId == null) {
+				Log.d(Config.TAG, "advertisingId can't be found");
+				return;
+			}
+
+//			String advertisingId = "123456789";
+//			Log.d(Config.TAG, "advertisingId = " + advertisingId);
+
 			try {
 				String cookies = CookieManager.getInstance().getCookie(url);
 
-				CookieUtils utils = new CookieUtils();
+				URL url = new URL(REGISTER_ADVERTISER_IDENTIFIERS_URL);
+				HttpURLConnection httpConn = (HttpURLConnection)url.openConnection();
+				httpConn.setDoInput(true);
+				httpConn.setDoOutput(true);
+				httpConn.setRequestProperty("Cookie", cookies);
+				httpConn.setRequestMethod("POST");
+//
+				OutputStream outputStream = httpConn.getOutputStream();
+				OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
+				BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+				bufferedWriter.write("id="+advertisingId);
+				bufferedWriter.flush();
 
-				HttpClient client = new DefaultHttpClient();
-				HttpContext context = new BasicHttpContext();
-				utils.setCookies(context, cookies);
-				HttpGet get = new HttpGet(ACCOUNT_URL);
-				HttpResponse response = client.execute(get, context);
-				HttpEntity entity = response.getEntity();
-				String result = EntityUtils.toString(entity);
-				JSONObject json = new JSONObject(result);
-				String email = json.getString("email");
+				httpConn.disconnect();
+				/*
+				int statusCode = httpConn.getResponseCode();
 
-				AccountManager manager = AccountManager.get(MainActivity.this);
-				Account newAccount = new Account(email, ACCOUNT_TYPE);
-				Account[] accounts = manager.getAccounts();
-				boolean found = false;
-				for (Account account: accounts) {
-					if (account.equals(newAccount)) {
-						found = true;
-						break;
+				if (statusCode ==  200) {
+					InputStream inputStream = new BufferedInputStream(httpConn.getInputStream());
+					BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
+					StringBuilder total = new StringBuilder();
+					for (String line; (line = r.readLine()) != null; ) {
+						total.append(line).append('\n');
 					}
-				}
+					String response = total.toString();
+//					Log.d(Config.TAG, "response = " + response );
 
-				if (!found) {
-					Log.d(Config.TAG, "Adding email " + newAccount.name + " to TestFairy account manager");
-					manager.addAccountExplicitly(newAccount, "", null);
 				}
+				*/
 
 			} catch (Throwable e) {
 				// not logged in probably, or network error
@@ -157,16 +178,16 @@ public class MainActivity extends Activity {
 			} else {
 				if (isLoginPage) {
 					//if the last page was login delete the browser history, so the cant go back to this page
-					Log.d("console", "clearHistory");
+					Log.d(Config.TAG, "clearHistory");
 					view.clearHistory();
+
+					// check cookies, see if a user has changed
+					Thread t = new Thread(new UpdateAdvertiserIdentifiers(url));
+					t.start();
 				}
 
 				isLoginPage = false;
 			}
-
-			// check cookies, see if a user has changed
-			Thread t = new Thread(new UpdateTestFairyAccount(url));
-			t.start();
 		}
 	}
 
