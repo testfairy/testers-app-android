@@ -1,8 +1,8 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
         google()
+        jcenter()
         maven { url 'https://www.testfairy.com/maven' }
     }
 
@@ -16,9 +16,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'testfairy'
 
 repositories {
-    jcenter()
     mavenCentral()
     google()
+    jcenter()
 }
 
 dependencies {
