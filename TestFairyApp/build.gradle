@@ -1,9 +1,9 @@
 buildscript {
     repositories {
-        mavenCentral()
-        google()
-        jcenter()
         maven { url 'https://www.testfairy.com/maven' }
+        mavenCentral()
+        jcenter()
+        google()
     }
 
     dependencies {
@@ -17,8 +17,8 @@ apply plugin: 'testfairy'
 
 repositories {
     mavenCentral()
-    google()
     jcenter()
+    google()
 }
 
 dependencies {
