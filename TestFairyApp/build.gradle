@@ -1,9 +1,9 @@
 buildscript {
     repositories {
+        maven { url 'https://www.testfairy.com/maven' }
         mavenCentral()
         jcenter()
         google()
-        maven { url 'https://www.testfairy.com/maven' }
     }
 
     dependencies {
@@ -16,14 +16,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'testfairy'
 
 repositories {
-    jcenter()
     mavenCentral()
+    jcenter()
     google()
 }
 
 dependencies {
     implementation 'testfairy:testfairy-android-sdk:1.+@aar'
-    implementation 'com.android.support:leanback-v17:26.1.0'
+    implementation 'com.android.support:leanback-v17:27.1.0'
     implementation 'com.google.android.gms:play-services-auth:+'
     implementation 'com.google.android.gms:play-services-ads:15.0.0'
 }
@@ -36,6 +36,8 @@ android {
     defaultConfig {
         minSdkVersion 17
         targetSdkVersion 27
+        versionCode 32
+        versionName "2.5.1"
     }
 
     signingConfigs {
@@ -58,6 +60,20 @@ android {
             signingConfig signingConfigs.release
             //runProguard true
             //proguardFile getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+
+    flavorDimensions "version"
+    productFlavors {
+        mobile {
+            dimension "version"
+            applicationId "com.testfairy.app"
+        }
+
+        tv {
+            dimension "version"
+            applicationId "com.testfairy.app"
+            versionCode 20001  + android.defaultConfig.versionCode
         }
     }
 
