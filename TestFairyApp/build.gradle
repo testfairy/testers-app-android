@@ -1,13 +1,13 @@
 buildscript {
     repositories {
         maven { url 'https://www.testfairy.com/maven' }
-        mavenCentral()
-        jcenter()
         google()
+        jcenter()
+        mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.5.3'
 	    classpath 'com.testfairy.plugins.gradle:testfairy:2.0'
     }
 }
@@ -16,21 +16,21 @@ apply plugin: 'com.android.application'
 apply plugin: 'testfairy'
 
 repositories {
-    mavenCentral()
-    jcenter()
     google()
+    jcenter()
+    mavenCentral()
 }
 
 dependencies {
     implementation 'testfairy:testfairy-android-sdk:1.+@aar'
-    implementation 'com.android.support:leanback-v17:27.1.0'
+    implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'com.google.android.gms:play-services-auth:+'
     implementation 'com.google.android.gms:play-services-ads:15.0.0'
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
     useLibrary  'org.apache.http.legacy'
 
     defaultConfig {

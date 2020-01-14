@@ -3,14 +3,15 @@ package com.testfairy.app;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.FileProvider;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -22,6 +23,8 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -32,6 +35,7 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.testfairy.TestFairy;
+import com.testfairy.utils.FileProvider;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,7 +60,6 @@ public class MainActivity extends Activity {
 	private static final String ACCOUNT_TYPE = "com.testfairy.app";
 
 	private static final String GOOGLE_CLIENT_ID = BuildConfig.GOOGLE_CLIENT_ID;
-
 	private static final int RC_GET_TOKEN = 9002;
 
 	private File localFile;
@@ -278,7 +281,6 @@ public class MainActivity extends Activity {
 		webView = findViewById(R.id.webView);
 		webView.setWebViewClient(new MyWebViewClient());
 		webView.setWebChromeClient(new MyWebChromeClient());
-
 		webView.addJavascriptInterface(new WebAppInterface(this), "Android");
 
 		// enable javascript. must be called before addJavascriptInterface
@@ -365,7 +367,7 @@ public class MainActivity extends Activity {
 			}
 		}
 
-		localFile = new File(storageDir.getAbsolutePath() + "/" + TEMP_DOWNLOAD_FILE);
+		localFile = new File(prepareAndGetDownloadDirectory(this), "/" + TEMP_DOWNLOAD_FILE );
 		Log.v(Config.TAG, "Using " + localFile.getAbsolutePath() + " for storing apk locally");
 
 		dialog = new ProgressDialog(this);
@@ -397,6 +399,21 @@ public class MainActivity extends Activity {
 		}
 
 		downloader.start();
+	}
+
+	private File prepareAndGetDownloadDirectory(Context context) {
+		File dir = context.getExternalCacheDir();
+
+		if (dir == null) {
+			dir = context.getCacheDir();
+		}
+
+		File autoUpdateRootFolder = new File(dir, "testfairy-auto-update");
+
+		FileUtils.deleteEntirely(autoUpdateRootFolder);
+		autoUpdateRootFolder.mkdirs();
+
+		return autoUpdateRootFolder;
 	}
 
 	private void doGoogleLogin() {
@@ -457,19 +474,41 @@ public class MainActivity extends Activity {
 			float secs = diff/1000.0f;
 			Log.v(Config.TAG, String.format("Downloaded completed in %.2f seconds", secs));
 
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			Uri uri = Uri.fromFile(localFile);
+			StrictMode.VmPolicy vmPolicy = StrictMode.getVmPolicy();
+			StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+			StrictMode.setVmPolicy(builder.build());
+
+			Uri filePath = Uri.fromFile(localFile);
+
 			if (Build.VERSION.SDK_INT >= 24) {
-				uri = FileProvider.getUriForFile(
-					MainActivity.this,
-					getApplicationContext().getPackageName() + ".provider",
-					localFile
-				);
-				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+				try {
+					filePath = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".authority",
+							localFile);
+				} catch (Throwable t) {
+					Log.e(Config.TAG, "Error", t);
+				}
 			}
 
-			intent.setDataAndType(uri, MIME_TYPE_APK);
-			startActivity(intent);
+			Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+			intent.setDataAndType(filePath, MIME_TYPE_APK);
+			intent.setFlags(
+				Intent.FLAG_ACTIVITY_CLEAR_TOP |
+				Intent.FLAG_ACTIVITY_NEW_TASK |
+				Intent.FLAG_GRANT_READ_URI_PERMISSION
+			);
+			intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
+			intent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+			intent.putExtra(Intent.EXTRA_ALLOW_REPLACE, true);
+			intent.putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, getApplicationInfo().packageName);
+
+			try {
+				startActivity(intent);
+			} catch (ActivityNotFoundException e) {
+				Log.e(Config.TAG, "Installation Failed", e);
+				Toast.makeText(MainActivity.this, "Installation Failed", Toast.LENGTH_SHORT).show();
+			}
+
+			StrictMode.setVmPolicy(vmPolicy);
 		}
 
 		@Override
