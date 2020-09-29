@@ -23,24 +23,15 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.testfairy.TestFairy;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
@@ -53,11 +44,8 @@ public class MainActivity extends Activity {
 	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
 	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/login/with/google/";
-	private static final String REGISTER_ADVERTISER_IDENTIFIERS_URL = BASE_URL + "/register-advertiser-identifiers/";
 
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
-
-	private static final String ACCOUNT_TYPE = "com.testfairy.app";
 
 	private static final String GOOGLE_CLIENT_ID = BuildConfig.GOOGLE_CLIENT_ID;
 	private static final int RC_GET_TOKEN = 9002;
@@ -70,78 +58,6 @@ public class MainActivity extends Activity {
 	private long backPressedTime = 0;
 
 	private GoogleSignInClient googleSignInClient;
-
-	private class UpdateAdvertiserIdentifiers implements Runnable {
-
-		private String url;
-
-		public UpdateAdvertiserIdentifiers(String url) {
-			this.url = url;
-		}
-
-		private String getAdvertisingId() {
-			String advertisingId = null;
-
-			try {
-				AdvertisingIdClient.Info adInfo = AdvertisingIdClient.getAdvertisingIdInfo(MainActivity.this.getBaseContext());
-				advertisingId = adInfo.getId();
-			} catch (IOException e) {
-			} catch (GooglePlayServicesNotAvailableException e1) {
-			} catch (GooglePlayServicesRepairableException e2) {
-			}
-			return advertisingId;
-		}
-
-		@Override
-		public void run() {
-
-			String advertisingId = getAdvertisingId();
-			if (advertisingId == null) {
-				Log.d(Config.TAG, "advertisingId can't be found");
-				return;
-			}
-
-//			String advertisingId = "123456789";
-//			Log.d(Config.TAG, "advertisingId = " + advertisingId);
-
-			try {
-				String cookies = CookieManager.getInstance().getCookie(url);
-
-				URL url = new URL(REGISTER_ADVERTISER_IDENTIFIERS_URL);
-				HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-				httpConn.setDoInput(true);
-				httpConn.setDoOutput(true);
-				httpConn.setRequestProperty("Cookie", cookies);
-				httpConn.setRequestMethod("POST");
-//
-				OutputStream outputStream = httpConn.getOutputStream();
-				OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
-				BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-				bufferedWriter.write("id=" + advertisingId);
-				bufferedWriter.flush();
-
-				httpConn.disconnect();
-				/*
-				int statusCode = httpConn.getResponseCode();
-
-				if (statusCode ==  200) {
-					InputStream inputStream = new BufferedInputStream(httpConn.getInputStream());
-					BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
-					StringBuilder total = new StringBuilder();
-					for (String line; (line = r.readLine()) != null; ) {
-						total.append(line).append('\n');
-					}
-					String response = total.toString();
-//					Log.d(Config.TAG, "response = " + response );
-
-				}
-				*/
-
-			} catch (Throwable e) {
-				// not logged in probably, or network error
-			}
-		}
-	}
 
 	private class MyWebViewClient extends WebViewClient {
 		private boolean wasLastPageLogin = false;
@@ -183,10 +99,6 @@ public class MainActivity extends Activity {
 				if (wasLastPageLogin && isAtUrlPathExactly(url, "/my/")) {
 					//if the last page was login delete the browser history, so the cant go back to this page
 					clearHistory(view);
-
-					// check cookies, see if a user has changed
-					Thread t = new Thread(new UpdateAdvertiserIdentifiers(url));
-					t.start();
 				}
 
 				wasLastPageLogin = false;
