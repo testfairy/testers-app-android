@@ -23,8 +23,6 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -35,7 +33,6 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.testfairy.TestFairy;
-import com.testfairy.utils.FileProvider;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -45,6 +42,9 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 
 public class MainActivity extends Activity {
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
@@ -85,13 +85,13 @@ public class MainActivity extends Activity {
 			try {
 				AdvertisingIdClient.Info adInfo = AdvertisingIdClient.getAdvertisingIdInfo(MainActivity.this.getBaseContext());
 				advertisingId = adInfo.getId();
+			} catch (IOException e) {
+			} catch (GooglePlayServicesNotAvailableException e1) {
+			} catch (GooglePlayServicesRepairableException e2) {
 			}
-			catch (IOException e) {}
-			catch (GooglePlayServicesNotAvailableException e1) {}
-			catch (GooglePlayServicesRepairableException e2) {}
 			return advertisingId;
 		}
-			
+
 		@Override
 		public void run() {
 
@@ -108,7 +108,7 @@ public class MainActivity extends Activity {
 				String cookies = CookieManager.getInstance().getCookie(url);
 
 				URL url = new URL(REGISTER_ADVERTISER_IDENTIFIERS_URL);
-				HttpURLConnection httpConn = (HttpURLConnection)url.openConnection();
+				HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
 				httpConn.setDoInput(true);
 				httpConn.setDoOutput(true);
 				httpConn.setRequestProperty("Cookie", cookies);
@@ -117,7 +117,7 @@ public class MainActivity extends Activity {
 				OutputStream outputStream = httpConn.getOutputStream();
 				OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
 				BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-				bufferedWriter.write("id="+advertisingId);
+				bufferedWriter.write("id=" + advertisingId);
 				bufferedWriter.flush();
 
 				httpConn.disconnect();
@@ -338,8 +338,7 @@ public class MainActivity extends Activity {
 	 * @param message
 	 * @return
 	 */
-	private void alertWithMessage(String message)
-	{
+	private void alertWithMessage(String message) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(message);
 		builder.setCancelable(true);
@@ -354,7 +353,6 @@ public class MainActivity extends Activity {
 	 * @return
 	 */
 	private void startDownload(String url) {
-
 		// find where to keep files locally
 		File storageDir = getExternalFilesDir(null);
 		if (storageDir == null) {
@@ -367,7 +365,7 @@ public class MainActivity extends Activity {
 			}
 		}
 
-		localFile = new File(prepareAndGetDownloadDirectory(this), "/" + TEMP_DOWNLOAD_FILE );
+		localFile = new File(prepareAndGetDownloadDirectory(this), "/" + TEMP_DOWNLOAD_FILE);
 		Log.v(Config.TAG, "Using " + localFile.getAbsolutePath() + " for storing apk locally");
 
 		dialog = new ProgressDialog(this);
@@ -392,7 +390,7 @@ public class MainActivity extends Activity {
 			Map<String, String> map = utils.parseCookieString(cookies);
 //				Log.v(Config.TAG, "COOKIE: " + map.get("u") + ", url=" + url);
 
-			for (String key: map.keySet()) {
+			for (String key : map.keySet()) {
 				Log.v(Config.TAG, "Copying cookie " + key + " = " + map.get(key) + " to file downloader");
 				downloader.addCookie(key, map.get(key));
 			}
@@ -445,7 +443,7 @@ public class MainActivity extends Activity {
 		private long lastPrintout;
 		private long downloadStartedTimestamp;
 
-		private static final long THRESHOLD = 256*1024;
+		private static final long THRESHOLD = 256 * 1024;
 
 		@Override
 		public void onDownloadStarted() {
@@ -468,10 +466,10 @@ public class MainActivity extends Activity {
 				}
 			});
 
-			Log.v(Config.TAG, String.format("Done downloading %.2f KB", fileSize/1000.0f));
+			Log.v(Config.TAG, String.format("Done downloading %.2f KB", fileSize / 1000.0f));
 
 			long diff = System.currentTimeMillis() - downloadStartedTimestamp;
-			float secs = diff/1000.0f;
+			float secs = diff / 1000.0f;
 			Log.v(Config.TAG, String.format("Downloaded completed in %.2f seconds", secs));
 
 			StrictMode.VmPolicy vmPolicy = StrictMode.getVmPolicy();
@@ -482,7 +480,7 @@ public class MainActivity extends Activity {
 
 			if (Build.VERSION.SDK_INT >= 24) {
 				try {
-					filePath = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".authority",
+					filePath = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".provider",
 							localFile);
 				} catch (Throwable t) {
 					Log.e(Config.TAG, "Error", t);
@@ -492,9 +490,9 @@ public class MainActivity extends Activity {
 			Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
 			intent.setDataAndType(filePath, MIME_TYPE_APK);
 			intent.setFlags(
-				Intent.FLAG_ACTIVITY_CLEAR_TOP |
-				Intent.FLAG_ACTIVITY_NEW_TASK |
-				Intent.FLAG_GRANT_READ_URI_PERMISSION
+					Intent.FLAG_ACTIVITY_CLEAR_TOP |
+							Intent.FLAG_ACTIVITY_NEW_TASK |
+							Intent.FLAG_GRANT_READ_URI_PERMISSION
 			);
 			intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
 			intent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
@@ -505,7 +503,13 @@ public class MainActivity extends Activity {
 				startActivity(intent);
 			} catch (ActivityNotFoundException e) {
 				Log.e(Config.TAG, "Installation Failed", e);
-				Toast.makeText(MainActivity.this, "Installation Failed", Toast.LENGTH_SHORT).show();
+
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Toast.makeText(MainActivity.this, "Installation Failed", Toast.LENGTH_SHORT).show();
+					}
+				});
 			}
 
 			StrictMode.setVmPolicy(vmPolicy);
@@ -513,7 +517,6 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onDownloadProgress(final int offset, final int total) {
-
 			MainActivity.this.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
