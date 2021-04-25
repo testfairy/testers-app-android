@@ -1,5 +1,4 @@
 # TestFairy's - Testers App
-[![Build Status](https://travis-ci.org/testfairy/testers-app-android.svg)](https://travis-ci.org/testfairy/testers-app-android)
 
 Testers app lets testers file bug reports and download apps that are using the [TestFairy](https://www.testfairy.com) platform.
 
@@ -11,6 +10,10 @@ To install dev, clone this project from github and create an .APK by running:
 `sh gradlew assembleRelease`
 
 ## Changelog
+
+### Version 2.5.1
+
+* [NEW] Support Android TV
 
 ### Version 1.8
 
