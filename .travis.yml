@@ -17,9 +17,6 @@ android:
     - sys-img-armeabi-v7a-android-19
     - sys-img-armeabi-v7a-android-21
 
-before_install:
-  - openssl aes-256-cbc -K $encrypted_ab387d2e1d9a_key -iv $encrypted_ab387d2e1d9a_iv -in testfairy.keystore.enc -out testfairy.keystore -d
-
 script:
   - bash gradlew assembleRelease --info
   - find . -iname *.apk
