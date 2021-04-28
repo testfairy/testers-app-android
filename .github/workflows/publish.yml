@@ -4,11 +4,11 @@ on:
     tags:
       - '*' # Push events to matching *
 
-name: Upload Release Asset
+name: Upload Apps
 
 jobs:
   build:
-    name: Upload Release Asset
+    name: Upload Apps
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,35 +30,12 @@ jobs:
 
           ./gradlew TestFairyApp:assembleRelease
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ./TestFairyApp/build/outputs/apk/mobile/release/TestFairyApp-mobile-release.apk
+            ./TestFairyApp/build/outputs/apk/tv/release/TestFairyApp-tv-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Mobile
-        id: upload-release-asset1
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./TestFairyApp/build/outputs/apk/mobile/release/TestFairyApp-mobile-release.apk
-          asset_name: testers-app-mobile.apk
-          asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload TV
-        id: upload-release-asset2
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./TestFairyApp/build/outputs/apk/tv/release/TestFairyApp-tv-release.apk
-          asset_name: testers-app-tv.apk
-          asset_content_type: application/vnd.android.package-archive
