@@ -1,15 +1,18 @@
 package com.testfairy.app;
 
 import android.util.Log;
-import org.apache.http.*;
-import org.apache.http.client.*;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.*;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.protocol.*;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,10 +30,10 @@ public class FileDownloader {
 	private HashMap<String, String> cookies = new HashMap<String, String>();
 
 	public interface DownloadListener {
-		public void onDownloadStarted();
-		public void onDownloadFailed();
-		public void onDownloadCompleted();
-		public void onDownloadProgress(int offset, int total);
+		void onDownloadStarted();
+		void onDownloadFailed();
+		void onDownloadCompleted();
+		void onDownloadProgress(int offset, int total);
 	}
 
 	public FileDownloader(String url, File localFile) {

@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -34,6 +38,8 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
@@ -49,12 +55,15 @@ public class MainActivity extends Activity {
 	private static final String GOOGLE_CLIENT_ID = BuildConfig.GOOGLE_CLIENT_ID;
 	private static final int RC_GET_TOKEN = 9002;
 
+	private static final int RC_INSTALL_PACKAGE = 10123;
+
 	private File localFile;
 	private WebView webView;
 	private ProgressDialog dialog;
 	private FileDownloader downloader;
 	private ProgressBar progressBar;
 	private long backPressedTime = 0;
+	private String packageToInstall = null;
 
 	private GoogleSignInClient googleSignInClient;
 
@@ -177,7 +186,6 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-
 //		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 //		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -227,6 +235,62 @@ public class MainActivity extends Activity {
 		if (requestCode == RC_GET_TOKEN) {
 			Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
 			handleSignInResult(task);
+		}
+
+		if (requestCode == RC_INSTALL_PACKAGE) {
+			if (resultCode == RESULT_OK) {
+				Toast.makeText(this, "App installed successfully", Toast.LENGTH_LONG).show();
+
+				if (packageToInstall != null) {
+					launchApp(packageToInstall);
+				}
+			} else {
+				Toast.makeText(this, "Installation failed", Toast.LENGTH_LONG).show();
+
+				Log.e(Config.TAG, "Error installing package: " + resultCode);
+			}
+		}
+
+		packageToInstall = null;
+	}
+
+	public void launchApp(String packageName) {
+		Intent intent = new Intent();
+		intent.setPackage(packageName);
+
+		PackageManager pm = getPackageManager();
+		List<ResolveInfo> resolveInfos = pm.queryIntentActivities(intent, 0);
+
+		Collections.sort(resolveInfos, new ResolveInfo.DisplayNameComparator(pm));
+
+		if(resolveInfos.size() > 0) {
+			ResolveInfo launchable = resolveInfos.get(0);
+			ActivityInfo activity = launchable.activityInfo;
+			ComponentName name=new ComponentName(activity.applicationInfo.packageName, activity.name);
+			Intent i = new Intent(Intent.ACTION_MAIN);
+
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+			i.setComponent(name);
+
+			startActivity(i);
+		} else {
+			Intent launchIntent = null;
+
+			try{
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					launchIntent = getPackageManager().getLeanbackLaunchIntentForPackage(packageName);
+				}
+			} catch (NoSuchMethodError e){
+			}
+
+			if (launchIntent == null) {
+				launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
+			}
+
+			if (launchIntent != null)  {
+				launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+				startActivity(launchIntent);
+			}
 		}
 	}
 
@@ -289,6 +353,15 @@ public class MainActivity extends Activity {
 		dialog.show();
 
 		//buildUpgradeUrl = "http://app.testfairy.com/download/64VK8C1D68S2VP1RT7NQA30Z145VWJA5ACJNNZTF5TFAC/MakeMeBald_v1.1-testfairy.apk";
+		Uri uri = Uri.parse(url);
+		if (uri.getQueryParameterNames().contains("packageName")) {
+			packageToInstall = uri.getQueryParameter("packageName");
+
+			if (packageToInstall.length() == 0) {
+				packageToInstall = null;
+			}
+		}
+
 		downloader = new FileDownloader(url, localFile);
 		downloader.setDownloadListener(downloadListener);
 
@@ -399,8 +472,8 @@ public class MainActivity extends Activity {
 			Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
 			intent.setDataAndType(filePath, MIME_TYPE_APK);
 			intent.setFlags(
-					Intent.FLAG_ACTIVITY_CLEAR_TOP |
-							Intent.FLAG_ACTIVITY_NEW_TASK |
+//					Intent.FLAG_ACTIVITY_CLEAR_TOP |
+//							Intent.FLAG_ACTIVITY_NEW_TASK |
 							Intent.FLAG_GRANT_READ_URI_PERMISSION
 			);
 			intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
@@ -409,7 +482,7 @@ public class MainActivity extends Activity {
 			intent.putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, getApplicationInfo().packageName);
 
 			try {
-				startActivity(intent);
+				startActivityForResult(intent, RC_INSTALL_PACKAGE);
 			} catch (ActivityNotFoundException e) {
 				Log.e(Config.TAG, "Installation Failed", e);
 
