@@ -18,7 +18,7 @@ jobs:
       run: |
         export TESTFAIRY_KEYSTORE_PASSWORD=${{ secrets.TESTFAIRY_KEYSTORE_PASSWORD }}
         echo ${{ secrets.TESTFAIRY_KEY_STORE }} | base64 -d > testfairy.keystore
-        echo "org.gradle.daemon=false" >> gradle.properties
+        printf "\norg.gradle.daemon=false" >> gradle.properties
 
         ./gradlew TestFairyApp:assembleRelease
 
