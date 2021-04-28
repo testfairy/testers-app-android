@@ -14,10 +14,10 @@ jobs:
         java-version: 1.8
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
-    - name: Compile SDK
+    - name: Compile App
       run: |
         export TESTFAIRY_KEYSTORE_PASSWORD=${{ secrets.TESTFAIRY_KEYSTORE_PASSWORD }}
-        echo ${{ secrets.TESTFAIRY_KEY_STORE }} | base64 -d > testfairy.keystore
+        echo ${{ secrets.TESTFAIRY_KEYSTORE_BASE64 }} | base64 -d > testfairy.keystore
         printf "\norg.gradle.daemon=false" >> gradle.properties
 
         ./gradlew TestFairyApp:assembleRelease
