@@ -23,23 +23,22 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
+
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-import com.testfairy.TestFairy;
 
 import java.io.File;
 import java.util.Map;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
-
 public class MainActivity extends Activity {
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
-	private static final String USER_AGENT = "TestersApp/" + Config.VERSION + " android " + BuildConfig.FLAVOR;
+	private static final String USER_AGENT = "TestersApp/" + BuildConfig.VERSION_NAME + " android " + BuildConfig.FLAVOR;
 
 	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
@@ -184,8 +183,6 @@ public class MainActivity extends Activity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
-		TestFairy.begin(this, "b5f48b5b410537bbb8781507af019e07307f2eac");
 
 		progressBar = findViewById(R.id.progressBar);
 		progressBar.setVisibility(View.GONE);

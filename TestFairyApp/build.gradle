@@ -1,14 +1,14 @@
 buildscript {
     repositories {
-        maven { url 'https://www.testfairy.com/maven' }
+        maven { url 'https://maven.testfairy.com' }
         google()
         jcenter()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.3'
-	    classpath 'com.testfairy.plugins.gradle:testfairy:2.0'
+        classpath 'com.android.tools.build:gradle:4.1.3'
+	    classpath 'com.testfairy.plugins.gradle:testfairy:3.2'
     }
 }
 
@@ -16,36 +16,37 @@ apply plugin: 'com.android.application'
 apply plugin: 'testfairy'
 
 repositories {
+    maven { url 'https://maven.testfairy.com' }
     google()
     jcenter()
     mavenCentral()
 }
 
 dependencies {
-    implementation 'testfairy:testfairy-android-sdk:1.+@aar'
+    implementation 'com.testfairy:testfairy-android-sdk:1.+@aar'
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'com.google.android.gms:play-services-auth:+'
     implementation 'com.google.android.gms:play-services-ads:15.0.0'
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
     buildToolsVersion "28.0.3"
     useLibrary  'org.apache.http.legacy'
 
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 27
-        versionCode 33
-        versionName "2.5.2"
+        targetSdkVersion 30
+        versionCode 35
+        versionName "2.6.0"
     }
 
     signingConfigs {
         release {
             storeFile file("../testfairy.keystore")
-            storePassword "3u2u741H8ca34ap"
-            keyAlias "testfairyapp"
-            keyPassword "3u2u741H8ca34ap"
+            storePassword System.getenv('TESTFAIRY_KEYSTORE_PASSWORD')
+            keyAlias "testfairy"
+            keyPassword System.getenv('TESTFAIRY_KEYSTORE_PASSWORD')
         }
     }
 
@@ -78,11 +79,10 @@ android {
     }
 
     testfairyConfig {
-        apiKey "9dc08e8d93efd8622178f0c61faeaf112fbafcb4"
+        apiKey ""
 	    recordOnBackground false
 	    autoUpdate true
 	    maxDuration "unlimited"
-        //uploadProguardMapping true
     }
 
     lintOptions {
