@@ -25,8 +25,9 @@ repositories {
 dependencies {
     implementation 'com.testfairy:testfairy-android-sdk:1.+@aar'
     implementation 'androidx.leanback:leanback:1.0.0'
-    implementation 'com.google.android.gms:play-services-auth:+'
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation 'com.google.android.gms:play-services-ads:15.0.0'
+
 }
 
 android {
@@ -37,8 +38,8 @@ android {
     defaultConfig {
         minSdkVersion 17
         targetSdkVersion 30
-        versionCode 35
-        versionName "2.6.0"
+        versionCode 36
+        versionName "2.6.1"
     }
 
     signingConfigs {
