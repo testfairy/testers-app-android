@@ -43,18 +43,19 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
+	private static final String BASE_URL = "https://app.testfairy.com";
+
 	private static final String MIME_TYPE_APK = "application/vnd.android.package-archive";
 	private static final String USER_AGENT = "TestersApp/" + BuildConfig.VERSION_NAME + " android " + BuildConfig.FLAVOR;
 
-	private static final String BASE_URL = "https://app.testfairy.com";
 	private static final String LOGIN_URL = BASE_URL + "/login/";
 	private static final String GOOGLE_SIGNIN_URL = BASE_URL + "/login/with/google/";
 
 	private static final String TEMP_DOWNLOAD_FILE = "testfairy-app-download.apk";
 
 	private static final String GOOGLE_CLIENT_ID = BuildConfig.GOOGLE_CLIENT_ID;
-	private static final int RC_GET_TOKEN = 9002;
 
+	private static final int RC_GET_TOKEN = 9002;
 	private static final int RC_INSTALL_PACKAGE = 10123;
 
 	private File localFile;

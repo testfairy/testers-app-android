@@ -4,16 +4,23 @@ Testers app lets testers file bug reports and download apps that are using the [
 
 ## Installation
 
-You can install a stable release from Google's [Play Store](https://play.google.com/store/apps/details?id=com.testfairy.app) or compile manually.
+To install, clone this project from github and create an .APK by running:
 
-To install dev, clone this project from github and create an .APK by running:
-`sh gradlew assembleDebug`
+```shell
+./gradlew assembleDebug
+```
+
+If you are on a private cloud, make sure to update `MainActivity::BASE_URL` with your cloud URL before building the app.
 
 ## Changelog
 
+### Version 2.7.0
+
+* Removed TestFairy Android SDK and gradle plugin from the project.
+
 ### Version 2.6.0
 
-* Improvement: Compiled with the latest Android SDK.
+* [IMPROVEMENT] Compiled with the latest Android SDK.
 
 ### Version 2.5.1
 
